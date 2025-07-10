@@ -1,0 +1,18 @@
+---
+description: Add file header comments with author info and description
+globs:
+  - "**/*.java"
+alwaysApply: true
+---
+
+/\*\*
+
+- @author peixin wang
+- @date ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}
+- @description
+  \*/
+  description:
+  globs:
+  alwaysApply: false
+
+---
