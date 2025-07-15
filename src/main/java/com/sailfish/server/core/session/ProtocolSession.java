@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Data
 public class ProtocolSession implements Closeable {
 
+    // 一个Session最多缓存1000条请求数据
     private static final int REQUEST_CACHE_LIMIT = 1000;
 
     public static final AttributeKey<String> SESSION_KEY = AttributeKey.valueOf("session_id");
@@ -40,12 +41,15 @@ public class ProtocolSession implements Closeable {
 
     private final Set<String> pileNos;
 
+    // 缓存请求数据 实现消息幂等消费
     private final Cache<String, Object> requestCache = Caffeine.newBuilder()
             .initialCapacity(REQUEST_CACHE_LIMIT)
             .maximumSize(REQUEST_CACHE_LIMIT)
+             // 设置缓存过期时间为2分钟
             .expireAfterAccess(Duration.ofMinutes(1))
             .build();
 
+    // 当前会话的序列号
     private final AtomicInteger seqNo = new AtomicInteger(0);
 
     private LocalDateTime lastActiveTime;
@@ -91,29 +95,34 @@ public class ProtocolSession implements Closeable {
      * 获取下一个序列号
      */
     public int nextSeqNo(SeqNoLength length) {
-        synchronized (seqNo) {
-            int result = seqNo.incrementAndGet();
+
+        seqNo.updateAndGet(current -> {
+            int result = current + 1;
             // 如果序列号溢出，则重置为0
             switch (length) {
                 case BYTE -> {
                     if (result == 0xFF) {
-                        seqNo.set(0);
+                        return 0;
                     }
                 }
                 case SHORT -> {
                     if (result == Short.MAX_VALUE) {
-                        seqNo.set(0);
+                        return 0;
                     }
                 }
                 default -> {
                     if (result == Integer.MAX_VALUE) {
-                        seqNo.set(0);
+                        return 0;
                     }
                 }
             }
-
             return result;
-        }
+        });
+        log.info("获取下一个序列号: {}", seqNo.get());
+        // 返回更新后的序列号
+        return seqNo.get();
+
+
     }
 
 

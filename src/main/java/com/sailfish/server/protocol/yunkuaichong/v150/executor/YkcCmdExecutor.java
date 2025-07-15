@@ -11,6 +11,9 @@ import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import static com.sailfish.server.core.session.ProtocolSession.SeqNoLength.SHORT;
 import static com.sailfish.server.protocol.yunkuaichong.v150.constants.YkcConstant.YUNKUAICHONG_HEAD;
 import static com.sailfish.server.protocol.yunkuaichong.v150.constants.YkcConstant.YUNKUAICHONG_NORMAL_ENCRYPTION_FLAG;
@@ -102,6 +105,39 @@ public abstract class YkcCmdExecutor {
                 msgBody);
 
         session.writeAndFlush(Unpooled.copiedBuffer(encode));
+    }
+
+    /**
+     * 发送tcp报文到tcp连接
+     * @param seqNo 序列号
+     * @param encryptionFlag 加密标志
+     * @return 下行输出报文
+     * @author wangpeixin
+     * @since 2025/7/11 13:44
+     */
+    protected byte[] encodeAndWriteFlush(YkcDownCmdEnum downlinkCmd,
+                                       int seqNo,
+                                       int encryptionFlag,
+                                       ByteBuf msgBody,
+                                       ProtocolSession session) {
+
+        byte[] encode = encode(downlinkCmd,
+                seqNo,
+                encryptionFlag,
+                msgBody);
+
+        session.writeAndFlush(Unpooled.copiedBuffer(encode));
+        return encode;
+    }
+
+    // 辅助函数：将long值按指定的放大倍数缩小为BigDecimal
+    protected static BigDecimal reduceMagnification(long value, int magnification) {
+        return new BigDecimal(value).divide(new BigDecimal(magnification), 4, RoundingMode.HALF_UP);
+    }
+
+    // 辅助函数：将long值按指定的放大倍数和小数位数缩小为BigDecimal
+    protected static BigDecimal reduceMagnification(long value, int magnification, int scale) {
+        return new BigDecimal(value).divide(new BigDecimal(magnification), scale, RoundingMode.HALF_UP);
     }
 
   }

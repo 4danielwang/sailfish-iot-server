@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.sailfish.server.common.constants.CacheConstant.CACHE_UPLINK_ACK;
 import static com.sailfish.server.protocol.yunkuaichong.v150.constants.YkcConstant.YUNKUAICHONG_HEAD;
 
 /**
@@ -97,6 +98,7 @@ public class YkcMessageProcessor extends MessageProcessor {
             return;
         }
 
+        // 手动创建的ByteBuf需要释放
         ByteBuf in = Unpooled.wrappedBuffer(msg);
         try {
             // ================== 协议头解析 ==================
@@ -114,9 +116,27 @@ public class YkcMessageProcessor extends MessageProcessor {
             }
 
             // ================== 字段快速解析 ==================
-            final int seqNo = in.getUnsignedShort(2);
+            final int seqNo = in.getUnsignedShortLE(2);
             final int encryptFlag = in.getUnsignedByte(4);
             final int frameType = in.getUnsignedByte(5);
+
+            // ==================快速失败 如果历史消息且ack不在缓存 ==================
+            String cacheKey = String.format(CACHE_UPLINK_ACK, seqNo, frameType);
+            if(seqNo < session.getSeqNo().get()){
+                // 幂等处理 重复请求
+                if(session.getRequestCache().getIfPresent(cacheKey) != null) {
+                    log.info("{} 云快充协议幂等处理，重复请求 CMD:{} 指令序列号:{}", session, frameType, seqNo);
+                    byte[] ack = (byte[]) session.getRequestCache().getIfPresent(cacheKey);
+                    session.writeAndFlush(Unpooled.wrappedBuffer(ack));
+                    return ;
+                }
+                // 无效数据 缓存已过期
+                log.info("{} 云快充协议接收到过期的上行指令 CMD:{} 指令序列号:{}", session, frameType, seqNo);
+                return ;
+            }else if(seqNo > session.getSeqNo().get()){
+                log.error("{} 云快充协议接收到的乱序的指令 CMD:{} 指令序列号:{} 服务器序列号:{}", session, frameType, seqNo, session.getSeqNo().get());
+                return ;
+            }
 
             // ================== 校验和双模式处理 ==================
             // 兼容小端/大端不同的设备/协议
@@ -159,6 +179,7 @@ public class YkcMessageProcessor extends MessageProcessor {
             byte[] msgBody = new byte[bodyLength];
             slicedBuf.readBytes(msgBody);
 
+
             // 发送指令
             exeUpCmd(new YkcProcessorToUplinkExeMessage(msgId)
                     .setHead(YUNKUAICHONG_HEAD)
@@ -173,6 +194,7 @@ public class YkcMessageProcessor extends MessageProcessor {
             in.release();
         }
     }
+
 
     /**
      * 处理下行消息
@@ -203,6 +225,7 @@ public class YkcMessageProcessor extends MessageProcessor {
             return;
         }
 
+        // todo 缓存
         uplinkCmdExe.execute(message, session, protocolContext);
     }
 

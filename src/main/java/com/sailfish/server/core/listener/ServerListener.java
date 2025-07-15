@@ -12,9 +12,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.Future;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -41,9 +43,9 @@ public class ServerListener {
     // 消息处理器
     private final MessageProcessor processor;
 
-    // TODO: 配置可修改服务器端口
-    private static final String serverAddress = "0.0.0.0";
-    private static final int serverPort = 8080;
+    private final String serverAddress = "0.0.0.0";
+
+    private final int serverPort = 8080;
 
     public ServerListener(String protocolName, MessageProcessor processor) {
         this.protocolName = protocolName;
@@ -99,8 +101,11 @@ public class ServerListener {
                 .childOption(ChannelOption.SO_SNDBUF, 65536)
                 .handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(initializer);
+        // netty初始化 阻塞初始化
         serverChannel = server.bind(serverAddress, serverPort).sync().channel();
-        serverChannel.closeFuture().sync();  // 让主线程等待
+        // 把netty服务端线程 设置为wait状态
+        // 会阻塞springboot主线程
+        serverChannel.closeFuture().sync();
         log.info("Tcp server [{}] started, BindAddress:[{}], BindPort: [{}]", protocolName, serverAddress, serverPort);
     }
 
@@ -110,6 +115,7 @@ public class ServerListener {
      * @author wangpeixin
      * @since 2025/7/9 14:11
      */
+    @PreDestroy
     public void stopListener() throws InterruptedException {
         if (this.serverChannel != null) {
             ChannelFuture cf = this.serverChannel.close().sync();

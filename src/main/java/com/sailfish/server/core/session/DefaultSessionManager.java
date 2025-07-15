@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.sailfish.server.autoconfigure.config.ThreadPoolConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 默认的会话管理器实现
  */
 @Slf4j
+@Component
 public class DefaultSessionManager implements SessionManager {
     private static final int INIT_SIZE = 100_000;
     private static final int MAXIMUM_SIZE = 1_000_000;

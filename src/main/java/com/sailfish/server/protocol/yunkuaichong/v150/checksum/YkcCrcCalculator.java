@@ -2,6 +2,9 @@ package com.sailfish.server.protocol.yunkuaichong.v150.checksum;
 
 import com.sailfish.server.checksum.AbstractCrcCalculator;
 import com.sailfish.server.checksum.CrcCalculator;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 
@@ -11,6 +14,7 @@ import java.util.Arrays;
  * @author wangpeixin
  * @since 2025/6/27 14:03
  */
+@Slf4j
 public class YkcCrcCalculator extends AbstractCrcCalculator implements CrcCalculator {
 
     private static final byte[] CRC_HI = {
@@ -67,6 +71,7 @@ public class YkcCrcCalculator extends AbstractCrcCalculator implements CrcCalcul
         crc = ((ucCRCHi & 0x00ff) << 8) | (ucCRCLo & 0x00ff) & 0xffff;
         crc = ((crc & 0xFF00) >> 8) | ((crc & 0x00FF) << 8);
         byte[] bytes = crcToBytesArray(crc);
+        log.info("CRC校验计算结果: {}, 原始数据: {}", crc, ByteBufUtil.hexDump(bytes));
 
         byte[] result = Arrays.copyOfRange(bytes, 2, 4);
         return ((result[0] & 0xFF) << 8) | (result[1] & 0xFF);

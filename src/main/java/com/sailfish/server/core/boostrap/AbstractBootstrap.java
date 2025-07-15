@@ -6,9 +6,6 @@ import com.sailfish.server.core.protocol.MessageProcessor;
 import com.sailfish.server.core.protocol.ProtocolContext;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 /**
  * 抽象启动器类
  *
@@ -16,7 +13,7 @@ import javax.annotation.PreDestroy;
  * @since 2025/7/9 14:47
  */
 @Slf4j
-public abstract class AbstractBootstrap {
+public abstract class AbstractBootstrap{
 
     // 服务器全局上下文
     protected ProtocolContext context;
@@ -33,7 +30,6 @@ public abstract class AbstractBootstrap {
      * @author wangpeixin
      * @since 2025/7/9 15:14
      */
-    @PostConstruct
     public void init() throws InterruptedException {
         log.info("[{}] Server Initializing...");
 
@@ -48,7 +44,6 @@ public abstract class AbstractBootstrap {
      * @author wangpeixin
      * @since 2025/7/9 15:15
      */
-    @PreDestroy
     public void destroy() throws InterruptedException {
         log.info("[{}] Server Destroying...");
 

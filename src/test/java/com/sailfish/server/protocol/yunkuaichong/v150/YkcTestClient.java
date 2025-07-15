@@ -27,12 +27,45 @@ public class YkcTestClient {
     private static final Logger log = LoggerFactory.getLogger(YkcTestClient.class);
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 8080;
-    private static final byte[] MESSAGE = {
+    private static final byte[] MESSAGE_X01 = {
             (byte) 0x68, (byte) 0x22, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x55, (byte) 0x03,
             (byte) 0x14, (byte) 0x12, (byte) 0x78, (byte) 0x23, (byte) 0x05, (byte) 0x00, (byte) 0x02, (byte) 0x0A,
             (byte) 0x56, (byte) 0x34, (byte) 0x2E, (byte) 0x31, (byte) 0x2E, (byte) 0x35, (byte) 0x30, (byte) 0x00,
             (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01,
             (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x04, (byte) 0x67, (byte) 0x5A
+    };
+    private static final byte[] MESSAGE_X03 = {
+            (byte) 0x68, (byte) 0x0D, (byte) 0x00, (byte) 0x01, (byte) 0x00,
+            (byte) 0x03, (byte) 0x32, (byte) 0x01, (byte) 0x02, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x01, (byte) 0x00,
+            (byte) 0xF1, (byte) 0x1A
+    };
+    private static final byte[] MESSAGE_X05 = {
+            (byte) 0x68, (byte) 0x0D, (byte) 0x00, (byte) 0x02, (byte) 0x00,
+            (byte) 0x05, (byte) 0x32, (byte) 0x01, (byte) 0x02, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x01,
+            (byte) 0xD5, (byte) 0x51
+    };
+    private static final byte[] MESSAGE_X09 = {
+            (byte) 0x68, (byte) 0x0B, (byte) 0x00, (byte) 0x01, (byte) 0x00,
+            (byte) 0x09, (byte) 0x32, (byte) 0x01, (byte) 0x02, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x3D, (byte) 0x59
+    };
+    private static final byte[] MESSAGE_X13 = {
+            (byte) 0x68, (byte) 0x40, (byte) 0x1A, (byte) 0x03, (byte) 0x00,
+            (byte) 0x13, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x55, (byte) 0x03, (byte) 0x14,
+            (byte) 0x12, (byte) 0x78, (byte) 0x23, (byte) 0x05, (byte) 0x02,
+            (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x01, (byte) 0x02,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0xE2, (byte) 0x52
     };
 
     public static void main(String[] args) throws Exception {
@@ -68,8 +101,8 @@ public class YkcTestClient {
         public void channelActive(ChannelHandlerContext ctx) {
             log.info("通道已激活，准备定时发送消息...");
             scheduler.scheduleAtFixedRate(() -> {
-                log.info("发送报文 : {}", ByteBufUtil.hexDump(MESSAGE));
-                ctx.writeAndFlush(Unpooled.wrappedBuffer(MESSAGE));
+                log.info("发送报文 : {}", ByteBufUtil.hexDump(MESSAGE_X01));
+                ctx.writeAndFlush(Unpooled.wrappedBuffer(MESSAGE_X01));
             }, 5, 10, TimeUnit.SECONDS);
         }
 
@@ -98,8 +131,5 @@ public class YkcTestClient {
             scheduler.shutdown();
             super.channelInactive(ctx);
         }
-
-        private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-
     }
 }

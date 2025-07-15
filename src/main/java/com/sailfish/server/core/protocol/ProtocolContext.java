@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
@@ -18,6 +19,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 @RequiredArgsConstructor
 @Getter
+@Component
 public class ProtocolContext {
 
     // 会话注册中心
@@ -25,7 +27,7 @@ public class ProtocolContext {
 
     @PostConstruct
     public void init() {
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE);
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
         log.info("ProtocolContext initialized successfully.");
     }
 }

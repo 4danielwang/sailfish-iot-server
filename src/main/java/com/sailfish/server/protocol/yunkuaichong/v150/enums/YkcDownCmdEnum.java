@@ -19,10 +19,8 @@ import java.util.stream.Collectors;
 public enum YkcDownCmdEnum implements Command {
     LOGIN_ACK("0x02", "充电桩登入应答"),
     HEARTBEAT_ACK("0x04", "心跳应答"),
-    CHARGING_EVENT_ACK("0x06", "充电事件应答"),
-    STATUS_REPORT_ACK("0x08", "状态信息应答"),
-    REMOTE_START_CHARGE("0x0A", "远程启动充电"),
-    REMOTE_STOP_CHARGE("0x0C", "远程停止充电");
+    MODEL_VALIDATE_ACK("0x06", "计费模型验证请求应答"),
+    PRICE_MODEL_ACK("0x0A", "计费模型请求应答"),
     ;
 
     private final String code;

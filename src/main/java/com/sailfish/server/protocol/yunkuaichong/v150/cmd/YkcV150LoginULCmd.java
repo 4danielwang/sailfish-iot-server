@@ -6,13 +6,18 @@ import com.sailfish.server.core.protocol.ProtocolContext;
 import com.sailfish.server.core.session.ProtocolSession;
 import com.sailfish.server.protocol.yunkuaichong.v150.constants.YkcConstant;
 import com.sailfish.server.protocol.yunkuaichong.v150.enums.YkcDownCmdEnum;
+import com.sailfish.server.protocol.yunkuaichong.v150.enums.YkcUpCmdEnum;
 import com.sailfish.server.protocol.yunkuaichong.v150.executor.YkcCmdUpExecutor;
 import com.sailfish.server.protocol.yunkuaichong.v150.dto.YkcProcessorToUplinkExeMessage;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.sailfish.server.common.constants.CacheConstant.CACHE_UPLINK_ACK;
 
 /**
  * 登录请求指令
@@ -57,19 +62,37 @@ public class YkcV150LoginULCmd extends YkcCmdUpExecutor {
         // 注册会话到会话注册中心
         ctx.getSessionManager().register(session);
 
-        pingAck(pileCodeBytes, session);
+        // 缓存ackbody
+        byte[] ack = pingAck(pileCodeBytes, message.getSequenceNumber(), message.getEncryptionFlag(), session);
+
+        // 缓存下行回复消息
+        session.getRequestCache().put(String.format(CACHE_UPLINK_ACK, message.getSequenceNumber(), YkcUpCmdEnum.LOGIN.getShortCode()), ack);
     }
 
     // 测试回复消息
-    private void pingAck(byte[] pileCodeBytes, ProtocolSession session) {
+    private byte[] pingAck(byte[] pileCodeBytes, int seqNo, int encryptFlag, ProtocolSession session) {
+        log.debug("{} 云快充1.5.0登录认证应答: {}, seqNo: {}, encryptFlag: {}, pileCodeBytes: {}",
+                session, YkcDownCmdEnum.LOGIN_ACK, seqNo, encryptFlag, BCDUtil.toString(pileCodeBytes));
         ByteBuf body = Unpooled.buffer(8);
-        body.writeBytes(pileCodeBytes);
-        body.writeByte(YkcConstant.YUNKUAICHONG_ACK_SUCCESS);
+        try{
+            body.writeBytes(pileCodeBytes);
+            body.writeByte(YkcConstant.YUNKUAICHONG_ACK_SUCCESS);
 
-        encodeAndWriteFlush(YkcDownCmdEnum.LOGIN_ACK,
-                body,
-                session
-                );
+            byte[] bytes = encodeAndWriteFlush(YkcDownCmdEnum.LOGIN_ACK,
+                    seqNo,
+                    encryptFlag,
+                    body,
+                    session
+            );
+            // 更新序列号
+            session.nextSeqNo(ProtocolSession.SeqNoLength.SHORT);
+
+            return bytes;
+        }finally {
+            body.release();
+            log.debug("{} 云快充1.5.0登录认证应答: {}", session, YkcDownCmdEnum.LOGIN_ACK);
+        }
+
     }
 
 }

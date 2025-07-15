@@ -21,4 +21,15 @@ public class YkcConstant {
 
     // ack响应失败
     public static final int YUNKUAICHONG_ACK_FAILURE = 1;
+
+    // 计费模型验证成功
+    public static final int YUNKUAICHONG_PRICE_VALIDATE_SUCCESS = 0;
+
+    // 计费模型验证失败
+    public static final int YUNKUAICHONG_PRICE_VALIDATE_FAILURE = 1;
+
+    public static final byte TOP_BYTE = 0x00;
+    public static final byte PEAK_BYTE = 0x01;
+    public static final byte FLAT_BYTE = 0x02;
+    public static final byte VALLEY_BYTE = 0x03;
 }

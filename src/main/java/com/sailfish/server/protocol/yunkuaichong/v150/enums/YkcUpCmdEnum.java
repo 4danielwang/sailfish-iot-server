@@ -2,6 +2,7 @@ package com.sailfish.server.protocol.yunkuaichong.v150.enums;
 
 import com.sailfish.server.core.command.Command;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -16,12 +17,13 @@ import java.util.stream.Collectors;
  * @since 2025/7/9 08:59
  */
 @AllArgsConstructor
+@Getter
 public enum YkcUpCmdEnum implements Command {
     LOGIN("0x01", "充电桩登入"),
     HEARTBEAT("0x03", "心跳"),
-    CHARGING_EVENT("0x05", "充电事件上报"),
-    STATUS_REPORT("0x07", "状态信息上报"),
-    REMOTE_CONTROL_ACK("0x09", "远程控制命令应答");
+    MODEL_VALIDATE("0x05", "计费模型验证请求"),
+    PRICE_MODEL("0x09", "计费模型请求"),
+    MONITOR_DATA("0x13", "实时监测数据上传"),
     ;
 
     private final String code;

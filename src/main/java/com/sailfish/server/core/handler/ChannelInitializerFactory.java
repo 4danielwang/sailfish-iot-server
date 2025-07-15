@@ -21,13 +21,15 @@ public class ChannelInitializerFactory {
      */
     public static ChannelInitializer<SocketChannel> createInitializer(String protocolName, PacketType type, MessageProcessor processor) {
 
+        final int IDLE_READ_TIMEOUT_ONE_HOUR_SECONDS = 3600; // 空闲超时时间，单位为秒
+
         return switch (type){
             case BINARY -> new ChannelInitializer<>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
                     ch.pipeline()
                             .addLast(new ConnectionLimitHandler(protocolName, 10000)) // 限制最大连接数为
-                            .addLast(new IdleStateHandler(180, 0, 0, TimeUnit.SECONDS)) // 空闲检测
+                            .addLast(new IdleStateHandler(IDLE_READ_TIMEOUT_ONE_HOUR_SECONDS, 0, 0, TimeUnit.SECONDS)) // 空闲检测
                             .addLast(new IdleEventHandler()) // 空闲检测
                             .addLast(new LengthFieldBasedFrameDecoder(256, 1, 1, 2, 0)) // 拆包粘包
                             .addLast(new DownlinkMessageEncoder(protocolName, processor))// 编码器
